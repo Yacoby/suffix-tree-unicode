@@ -1,0 +1,439 @@
+From: <Saved by UnMHT>
+Subject: =?iso-2022-jp?B?W21haWx1bmQ6c29mdHdhcmVdIFN1ZmZpeFRyZWU=?=
+Date: Mon, Apr 19 2010 00:21:39 GMT+0100
+MIME-Version: 1.0
+Content-Type: multipart/related;
+	boundary="----=_NextPart_000_0000_352A30E3.55C951D9";
+	type="text/html"
+
+------=_NextPart_000_0000_352A30E3.55C951D9
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Content-Location: http://www.daimi.au.dk/~mailund/suffix_tree.html
+
+=EF=BB=BF<!DOCTYPE HTML PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://w=
+ww.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns=3D"http://www.w3.org/1999/xhtml"><head>
+
+<meta content=3D"text/html; charset=3DUTF-8" http-equiv=3D"Content-Type"><t=
+itle>[mailund:software] SuffixTree</title><link href=3D"software-style.css"=
+ type=3D"text/css" rel=3D"stylesheet"></link><base href=3D"http://www.daimi=
+.au.dk/~mailund/"></base></head><body><h1><img align=3D"absmiddle" src=3D"i=
+mg/bioinformatics-icon-software.png" class=3D"icon">SuffixTree</h1><div cla=
+ss=3D"menu">
+         [<a href=3D"#usage">Usage</a>]
+         [<a href=3D"#installation">Installation</a>]
+         [<a href=3D"#contact">Contact</a>]
+       </div>
+    <p>
+      This module wraps a C implementation of a suffix tree.
+    </p>
+    <p>
+      The python bindings are mainly intended for experimentation with
+      suffix tree based algorithms.  Consequently, they are not
+      particularly space or time efficient, but instead easily
+      extensible.
+    </p>
+  <h2><a id=3D"usage" name=3D"usage">Usage</a></h2>
+    <p>
+      To build a simple suffix tree =E2=80=94 a suffix tree of a single
+      string =E2=80=94 import the SuffixTree class and instantiate it
+      with the string:
+    </p>
+    <pre><b>from</b> suffix_tree <b>import</b> SuffixTree
+stree =3D SuffixTree(&#x27;mississippi&#x27;) </pre>
+    <p>
+      You can now traverse the tree through a number of iterators:
+      <code>leaves, innerNodes, preOrderNodes,</code> and
+      <code>postOrderNodes,</code> that traverses all leaves, all
+      inner nodes, all nodes in pre- and post-order, respectively:
+    </p>
+    <pre>&gt;&gt;&gt; for l in stree.leaves:
+...     print l.pathLabel
+...
+mississippi$
+ississippi$
+issippi$
+ippi$
+i$
+ssissippi$
+ssippi$
+sissippi$
+sippi$
+ppi$
+pi$
+$</pre>
+   <p>
+     For more low-level access, the root node is available as the
+     <code>stree.root</code> attribute.
+   </p>
+   <p>
+     The string parameter to the suffix tree is available through the
+     <code>string</code> property::
+   </p>
+   <pre>&gt;&gt;&gt; stree.string[2:4]
+&#x27;ss&#x27;</pre>
+
+   <p>
+     A generalised suffix tree =E2=80=94 a suffix tree representing a
+     set of strings =E2=80=94 can be constructed using the
+     GeneralisedSuffixTree class:
+   </p>
+   <pre><b>from</b> suffix_tree <b>import</b> GeneralisedSuffixTree
+stree =3D GeneralisedSuffixTree([&#x27;mississippi&#x27;,&#x27;sippissi&#x2=
+7;]) </pre>
+   <p>
+     In addition to the functionality of the simple suffix tree, the
+     generalised suffix tree has a function for extracting all shared
+     substrings of the set of strings, or all shared substrings of a
+     given minimal length
+   </p>
+   <pre>for shared in stree.sharedSubstrings():
+    print &#x27;-&#x27;*70
+    for seq,start,stop in shared:
+        print seq, &#x27;[&#x27;+str(start)+&#x27;:&#x27;+str(stop)+&#x27;]=
+&#x27;,
+        print stree.sequences[seq][start:stop],
+        print stree.sequences[seq][:start]+&#x27;|&#x27;+stree.sequences[se=
+q][start:stop]+\
+              &#x27;|&#x27;+stree.sequences[seq][stop:]
+print &#x27;=3D&#x27;*70
+
+for shared in stree.sharedSubstrings(2):
+    print &#x27;-&#x27;*70
+    for seq,start,stop in shared:
+        print seq, &#x27;[&#x27;+str(start)+&#x27;:&#x27;+str(stop)+&#x27;]=
+&#x27;,
+        print stree.sequences[seq][start:stop],
+        print stree.sequences[seq][:start]+&#x27;|&#x27;+stree.sequences[se=
+q][start:stop]+\
+              &#x27;|&#x27;+stree.sequences[seq][stop:]
+print &#x27;=3D&#x27;*70 </pre>
+
+
+   <p>
+     The nodes have attributes for the path label
+     (<code>pathLabel</code>) =E2=80=94 the label on the path from the
+     root to the node =E2=80=94 for the edge label
+     (<code>edgeLabel</code>) =E2=80=94 the label on the edge from the
+     parent to the node =E2=80=94 for accessing the first and last child
+     of the node (<code>firstChild</code> and <code>lastChild</code>),
+     for accessing the left and right sibling (<code>prev</code> and
+     <code>next</code>) and a few more.  See the on-line help for more
+     details.
+   </p>
+
+   <p>
+     Each node has an associated dictionary, making it easy to
+     annotate the nodes for algorithmic prototyping, as illustrated
+     below in a piece of code taken from the implementation of the
+     generalised suffix tree:
+   </p>
+   <pre>for n in self.postOrderNodes:
+    if n.isLeaf:
+        seq,idx =3D self._translateIndex(n.index)
+        <b>n.pathIndices =3D [(seq, idx)]
+        n.sequences =3D [seq]</b>
+    else:
+        pathIndices =3D [] ; sequences =3D []
+        c =3D n.firstChild
+        while c is not None:
+            pathIndices +=3D c.pathIndices
+            sequences +=3D c.sequences
+            c =3D c.next
+
+        seqsInSubtree =3D {}
+        for s in sequences:
+            seqsInSubtree[s] =3D 1
+
+        <b>n.pathIndices =3D pathIndices
+        n.sequences =3D [s for s in seqsInSubtree]</b></pre>
+
+    <p>
+      Here, the nodes are annotated with pairs of sequence times index
+      for the individual sequences in the generalised suffix tree, and
+      with the set of sequences represented in the nodes&#x27; sub-trees.
+    </p>
+
+    <p>
+      The generalised tree is build using a concatenation of all the
+      input strings.  The path labels are therefore not exactly the
+      labels you&#x27;d expect, but using the annotation the expected
+      labels can be extracted.
+    </p>
+
+    <p>
+      <b>A final word of warning:</b>  The python bindings really need
+      the cyclic garbage collector to be able to clean up suffix
+      trees.  The tree needs to reference the nodes, so they wont be
+      deleted with their annotation, and the nodes need to reference
+      the tree so it wont disappear while the script references the
+      node.
+    </p>
+    <p>
+      Unfortunately, I have not been able to make that work.
+      Since we really <em>need</em> to clean up the trees when we
+      prototype, I have chosen the following workaround: the tree
+      reference the nodes, but the nodes do not reference the tree.
+      It is therefore the script-writers responsibility to make sure
+      that the tree is not garbage collected while nodes in the tree
+      are referenced.  The alternative would result in trees never
+      being garbage collected.  I hope to fix this problem soon.
+    </p>
+
+  <h2><a id=3D"installation" name=3D"installation">Installation</a></h2>
+
+    <p>
+      To install the python binding for suffix trees,=20
+      <a href=3D"http://www.daimi.au.dk/~mailund/suffix_tree/">
+      download the source code</a> and unpack it (using <tt>tar xzf
+      suffix_tree-<em>a</em>.<em>b</em>.<em>c</em>.tar.gz</tt>, where
+      <em>a</em>.<em>b</em>.<em>c</em> is the version number).  Then
+      run the setup script:
+    </p>
+    <pre>python setup.py install </pre>
+
+    <p>
+      This will build the C library and the python bindings, and will
+      install the module.
+    </p>
+
+    <p>
+      See <tt>python setup.py --help</tt> for more details.
+    </p>
+
+    <p>
+      An older version (versions 1.0 and 1.1), also downloadable from=20
+     <a href=3D"http://www.daimi.au.dk/~mailund/suffix_tree/">here</a>,
+      was based on a <a href=3D"http://yeda.cs.technion.ac.il/~yona/suffix_=
+tree/">a suffix tree
+      implementation by Dotan Tsadoc and Shlomo Yona.</a>  If you use
+     this version, be aware that the API is slightly changed.
+    </p>
+   =20
+  <h2><a id=3D"contact" name=3D"contact">Contact</a></h2>
+
+      <p><a href=3D"http://www.birc.dk/Personnel/personnel.html#person_mail=
+und">Thomas Mailund</a>, <a href=3D"mailto:mailund@birc.au.dk">&lt;mailund@=
+birc.au.dk&gt;</a>,
+      Bioinformatics Research Center, University of Aarhus.</p>
+     =20
+  <address>
+    Time-stamp: &quot;2006-01-26 21:55:19 mailund&quot;
+  </address></body></html>
+------=_NextPart_000_0000_352A30E3.55C951D9
+Content-Type: text/css
+Content-Transfer-Encoding: quoted-printable
+Content-Location: http://www.daimi.au.dk/~mailund/software-style.css
+
+
+body {
+	font-family: sans-serif;
+	margin: 10px;
+}
+
+p {
+	margin: 20px;
+}
+
+img {
+  border-style: none;
+}
+
+img.border {
+	border: 1px solid black;
+	margin-top: 4px;
+	margin-bottom: 4px;
+	margin-left: 8px;
+ 	margin-right: 8px;
+}
+
+
+a[href] { text-decoration: none; color: #0a0aaf; }
+a:visited { color: #6f0aaf; }
+a[href]:hover { text-decoration: underline; }
+
+div.more {
+	text-align: right;
+        margin-right: 20px;
+        margin-top: 0px;
+        margin-bottom: 0px;
+	font-size: 90%;
+}
+div.date {
+	/*text-align: right;*/
+	float: right;
+	color: #666;
+        margin-top: 10px;
+	font-size: 75%;
+}
+h3.newsitem {
+	margin-bottom: 30px;
+}
+
+
+h1, h2, h3, h4 {
+	font-family: sans-serif;
+}
+h1 {
+	font-size: 220%;
+	color: #666;
+        margin: 0px;
+        padding: 0pt 10pt 0pt;
+	border-top: 1px solid #888;
+	border-bottom: 1px solid #888;
+	background-color: #eee;
+	letter-spacing: 2pt;
+}
+
+img.icon {
+        padding-right: 10pt;
+}
+
+div.menu {
+	text-align: right;
+	font-size: 80%;
+	margin: 0px 0px 10pt;
+	padding: 1pt 10pt 2pt;
+	color: #444;
+	background-color: #ffb606;
+	border-bottom: 1px solid #888;
+}
+
+h2 {
+	font-weight: normal;
+	font-variant: small-caps;
+	color: #666;
+	font-size: 130%;
+	border-bottom: 1px solid #888;
+	padding-bottom: 2pt;
+        margin-left: 5px;
+	margin-top: 0pt;
+	letter-spacing: 1pt;
+}
+
+h3 {
+	font-weight: normal;
+	letter-spacing: 1pt;
+	color: #ff6a06;
+	font-size: 110%;
+	border-bottom: 1px solid #888;
+	padding-bottom: 2pt;
+	margin-top: 0pt;
+        margin-left: 20px;
+        margin-right: 20px;
+	letter-spacing: 1pt;
+}
+
+h4 {
+	font-weight: normal;
+	color: #666;
+	border-bottom: 1px solid #666;
+	font-size: 105%;
+	margin-top: 4pt;
+        margin-left: 20px;
+	letter-spacing: 1pt;
+}
+
+address {
+	text-align: right;
+	margin: 0px 0px 10pt;
+	padding: 1pt 10pt 2pt;
+	font-size: 80%;
+	color: #444;
+	background-color: #ffb606;
+	margin-top: 30px;
+	border-top: 1px solid #888;
+	border-bottom: 1px solid #888;
+}
+
+pre {
+  background: #f0f0f0;
+  color : #000000;
+  margin-left: 30px; margin-right: 30px;
+  padding-left: 2pt; padding-right: 2pt;
+  padding-top: 5pt; padding-bottom: 5pt;
+  border: solid; border-width: thin;
+}
+
+------=_NextPart_000_0000_352A30E3.55C951D9
+Content-Type: image/png
+Content-Transfer-Encoding: base64
+Content-Location: http://www.daimi.au.dk/~mailund/img/bioinformatics-icon-software.png
+
+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
+------=_NextPart_000_0000_352A30E3.55C951D9--
