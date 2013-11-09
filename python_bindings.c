@@ -282,17 +282,21 @@ SuffixTree_init(SuffixTreeObject *self,	PyObject *args,	PyObject *kwds)
 	PyUnicodeObject *terminal = NULL;
 	static char *kwlist[] =	{"string", "terminal", NULL};
 
-	static wchar_t s[MAX_STR_LEN];
+	static wchar_t* s;
 	static wchar_t t[1];
 	int	n;
+	Py_ssize_t input_string_size;
 
 	if (! PyArg_ParseTupleAndKeywords(args,	kwds, "|uu", kwlist, 
 					  &string, &terminal))
 		return -1;		/* rethrow exception */
 
+
 	if (!(string = (PyUnicodeObject *) PyTuple_GetItem(args,0)))	  return -1; /*	rethrow	*/
 	if (!(terminal = (PyUnicodeObject *) PyTuple_GetItem(args,1)))	  return -1; /*	rethrow	*/
-	if ((n = PyUnicode_AsWideChar(string,s,MAX_STR_LEN)) < 0)   return -1; /*	rethrow	*/
+	input_string_size = PyUnicode_GetSize(string);
+	s = malloc((input_string_size + 1) * sizeof(wchar_t));
+	if ((n = PyUnicode_AsWideChar(string,s,input_string_size)) < 0)   return -1; /*	rethrow	*/
 	/* n is	actually ignored here -- the size of string	s is wcslen(s) */
 	if ((n = PyUnicode_AsWideChar(terminal,t,1)) < 0)   return -1; /*	rethrow	*/
 	if (n != 1)	// not a single	terminal symbol
@@ -302,10 +306,11 @@ SuffixTree_init(SuffixTreeObject *self,	PyObject *args,	PyObject *kwds)
 		return -1;
 	}
 
-	s[PyUnicode_GetSize(string)] = '\0';
+	s[input_string_size] = '\0';
 	t[1] = '\0';
 
 	self->tree = st_make(s,*t);
+	free(s);
 	if (!self->tree) {
 		PyErr_SetString(PyErr_NoMemory(), 
 			"Could not allocated suffix tree!");

@@ -4,8 +4,6 @@
 #ifndef SUFFIX_TREE_H_INCLUDED
 #define SUFFIX_TREE_H_INCLUDED
 
-#define MAX_STR_LEN 4096
-
 /* doubly linked list */
 struct list {
     struct node *head;
